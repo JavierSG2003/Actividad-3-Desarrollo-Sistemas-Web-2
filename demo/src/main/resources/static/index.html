@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Best Store - Products</title>
+    <!-- Tailwind CSS CDN para un estilizado rápido y adaptable -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Fuente Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #212529;
+        }
+    </style>
+</head>
+<body class="p-6 md:p-12">
+
+    <!-- Contenedor Principal Centrado -->
+    <div class="max-w-6xl mx-auto">
+        <!-- Título Principal de la Página -->
+        <h1 class="text-4xl text-center font-normal mb-8 text-gray-800">Products</h1>
+
+        <!-- Botón para Crear Producto (Blue Button) -->
+        <div class="mb-6">
+            <button onclick="openModal('create')" class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg shadow-sm transition duration-150">
+                Create Product
+            </button>
+        </div>
+
+        <!-- Tabla de Productos -->
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="border-b border-gray-200">
+                        <th class="py-3 px-2 font-bold text-gray-900">ID</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Description</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Price</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Amount</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Category</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Mark</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Image</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Created At</th>
+                        <th class="py-3 px-2 font-bold text-gray-900">Action</th>
+                    </tr>
+                </thead>
+                <tbody id="productTableBody">
+                    <!-- Los productos se cargarán dinámicamente aquí -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Modal para Crear / Editar Producto -->
+    <div id="productModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+            <h2 id="modalTitle" class="text-2xl font-bold mb-4 text-gray-800">Create Product</h2>
+            <form id="productForm" onsubmit="saveProduct(event)">
+                <input type="hidden" id="productId">
+                <div class="mb-3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <input type="text" id="desc" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Price ($)</label>
+                        <input type="number" step="0.1" id="price" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Amount</label>
+                        <input type="number" id="amount" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3 mb-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                        <input type="text" id="category" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Mark</label>
+                        <input type="text" id="mark" required class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Image URL</label>
+                    <input type="url" id="imageUrl" placeholder="https://..." class="w-full border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-blue-500">
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300">Cancel</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm hover:bg-blue-700">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Script de datos de ejemplo e interacción dinámica -->
+    <script>
+        // Lista inicial de productos replicando el registro de la imagen
+        let products = [
+            {
+                id: 5,
+                description: 'Laptop asus',
+                price: 15000.0,
+                amount: 10,
+                category: 'computación',
+                mark: 'asus',
+                imageUrl: 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=120&auto=format&fit=crop&q=80',
+                createdAt: '2024-02-09'
+            }
+        ];
+
+        // Función para renderizar la tabla
+        function renderTable() {
+            const tbody = document.getElementById('productTableBody');
+            tbody.innerHTML = '';
+
+            products.forEach(p => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b border-gray-100 hover:bg-gray-50';
+                tr.innerHTML = `
+                    <td class="py-4 px-2 text-gray-800">${p.id}</td>
+                    <td class="py-4 px-2 text-gray-800">${p.description}</td>
+                    <td class="py-4 px-2 text-gray-800">$${p.price.toFixed(1)}</td>
+                    <td class="py-4 px-2 text-gray-800">${p.amount}</td>
+                    <td class="py-4 px-2 text-gray-800">${p.category}</td>
+                    <td class="py-4 px-2 text-gray-800">${p.mark}</td>
+                    <td class="py-4 px-2">
+                        <img src="${p.imageUrl}" alt="${p.description}" class="w-16 h-12 object-contain rounded" onerror="this.src='https://placehold.co/80x60/e2e8f0/64748b?text=Laptop'">
+                    </td>
+                    <td class="py-4 px-2 text-gray-800">${p.createdAt}</td>
+                    <td class="py-4 px-2">
+                        <div class="flex items-center gap-1.5">
+                            <button onclick="openModal('edit', ${p.id})" class="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2.5 py-1.5 rounded transition">Edit</button>
+                            <button onclick="deleteProduct(${p.id})" class="bg-red-500 hover:bg-red-600 text-white text-xs px-2.5 py-1.5 rounded transition">Delete</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Control de Modales
+        function openModal(mode, id = null) {
+            const modal = document.getElementById('productModal');
+            const title = document.getElementById('modalTitle');
+            const form = document.getElementById('productForm');
+
+            modal.classList.remove('hidden');
+
+            if (mode === 'edit' && id !== null) {
+                const product = products.find(p => p.id === id);
+                if (product) {
+                    title.textContent = 'Edit Product';
+                    document.getElementById('productId').value = product.id;
+                    document.getElementById('desc').value = product.description;
+                    document.getElementById('price').value = product.price;
+                    document.getElementById('amount').value = product.amount;
+                    document.getElementById('category').value = product.category;
+                    document.getElementById('mark').value = product.mark;
+                    document.getElementById('imageUrl').value = product.imageUrl;
+                }
+            } else {
+                title.textContent = 'Create Product';
+                form.reset();
+                document.getElementById('productId').value = '';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('productModal').classList.add('hidden');
+        }
+
+        // Crear o Editar Producto
+        function saveProduct(e) {
+            e.preventDefault();
+            const id = document.getElementById('productId').value;
+            const desc = document.getElementById('desc').value;
+            const price = parseFloat(document.getElementById('price').value);
+            const amount = parseInt(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+            const mark = document.getElementById('mark').value;
+            const imageUrl = document.getElementById('imageUrl').value || 'https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=120&auto=format&fit=crop&q=80';
+
+            if (id) {
+                // Editar existente
+                const index = products.findIndex(p => p.id == id);
+                if (index !== -1) {
+                    products[index] = { ...products[index], description: desc, price, amount, category, mark, imageUrl };
+                }
+            } else {
+                // Crear nuevo
+                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                const today = new Date().toISOString().split('T')[0];
+                products.push({
+                    id: newId,
+                    description: desc,
+                    price,
+                    amount,
+                    category,
+                    mark,
+                    imageUrl,
+                    createdAt: today
+                });
+            }
+
+            renderTable();
+            closeModal();
+        }
+
+        // Eliminar Producto
+        function deleteProduct(id) {
+            products = products.filter(p => p.id !== id);
+            renderTable();
+        }
+
+        // Carga inicial
+        window.onload = renderTable;
+    </script>
+</body>
+</html>
